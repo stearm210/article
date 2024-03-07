@@ -1,0 +1,162 @@
+\documentclass{SZTUthesis}
+\usepackage{makecell}
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage{setspace}
+\setstretch{1.5}
+\hypersetup{
+colorlinks=true,
+linkcolor=black
+}
+
+\newcommand\pkg[1]{\texttt{#1}\textsuperscript{\sffamily PKG}}
+\newcommand\env[1]{\texttt{#1}\textsuperscript{\sffamily ENV}}
+\newcommand\app[1]{\textsf{#1}}
+\newcommand\oper[1]{\texttt{#1}}
+\newcommand\cls[1]{\texttt{#1}\textsuperscript{\sffamily CLS}}
+\newcommand\bib[1]{\texttt{#1}\textsuperscript{\sffamily BIB}}
+\renewcommand\emph[1]{\textbf{#1}}
+\newcommand\format[1]{\textsf{#1}}
+
+%算法
+%\begin{algorithm}[t]
+%\caption{algorithm caption} %算法的名字
+%\hspace*{0.02in} {\bf Input:} %算法的输入， \hspace*{0.02in}用来控制位置，同时利用 \\ 进行换行
+%input parameters A, B, C\\
+%\hspace*{0.02in} {\bf Output:} %算法的结果输出
+%output result
+%\begin{algorithmic}[1]
+%\State some description % \State 后写一般语句
+%\For{condition} % For 语句，需要和EndFor对应
+%	\State ...
+%	\If{condition} % If 语句，需要和EndIf对应
+%		\State ...
+%	\Else
+%		\State ...
+%	\EndIf
+%\EndFor
+%\While{condition} % While语句，需要和EndWhile对应
+%	\State ...
+%\EndWhile
+%\State \Return result
+%\end{algorithmic}
+%\end{algorithm}
+
+\include{content/info}
+
+% lipsum
+\newcommand{\lipsum}{
+	
+}
+
+
+% 让各类元素在全文按1、2、3...顺序编号，而不因章节变化而重置为1
+\numberwithin{figure}{section}
+\numberwithin{equation}{section}
+\numberwithin{algorithm}{section}
+\numberwithin{table}{section}
+
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 封面
+% -----------------------------------------------%
+\makecoverpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 前置部分的页眉页脚设置
+% -----------------------------------------------%
+\newpage
+
+
+\pagestyle{empty}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 声明页
+% -----------------------------------------------%
+\announcement
+\newpage
+
+
+% 目录
+% -------------------------------------------%
+{
+\renewcommand{\contentsname}{\hfill \heiti \zihao{-2} 目\quad 录\hfill}  
+	\zihao{4}
+	\renewcommand*{\baselinestretch}{1.5}   % 行间距
+    \tableofcontents
+}
+\newpage
+
+% 去掉页眉章节序号后面的“.”
+\renewcommand{\sectionmark}[1]{\markright{\thesection~ #1}} 
+\renewcommand{\headrulewidth}{1pt}
+
+
+
+% 正文内容 
+% --------------------------------------------%
+
+\setheader
+
+% 可以使用include命令导入tex文件，从而避免过多修改本文件。
+
+% 论文正文是主体，主体部分应从另页右页开始，每一章应另起页。一般由序号标题、文字叙述、图、表格和公式等五个部分构成。
+
+% 重新设置正文行间距，因为前置部分设置时候行间距被改过
+\renewcommand*{\baselinestretch}{1.5}   % 几倍行间距
+\setlength{\baselineskip}{16pt}         % 基准行间距
+
+% 正文
+{
+% 表格字号应比正文小，这里设为小五号，但是暂时没法再cls里设置（不然会影响到封面等tabular环境）
+% 所以目前只好在主文件里局部\AtBeginEnvironment
+	\AtBeginEnvironment{tabular}{\zihao{5}}
+	\infotitle	% 正文标题，带学生信息
+	\linespread{1.5}
+	% 中文摘要
+	\setabstractfooter
+	
+	\input{content/abstractcn}
+	\newpage
+
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	% 英文摘要
+	% -----------------------------------------------%
+	\include{content/abstracten}
+
+	% 正文内容
+	\setfooter
+	 
+	\begin{spacing}{1.5}
+		\input{content/content}
+	\end{spacing}
+	
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 临时标签，用于编译时追踪正文末尾
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 后续内容
+% --------------------------------------------%
+
+% https://www.zhihu.com/question/29413517/answer/44358389 %
+% 说明如下：
+% secnumdepth 这个计数器是 LaTeX 标准文档类用来控制章节编号深度的。在 article 中，这个计数器的值默认是 3，对应的章节命令是 \subsubsection。也就是说，默认情况下，article 将会对 \subsubsection 及其之上的所有章节标题进行编号，也就是 \part, \section, \subsection, \subsubsection。LaTeX 标准文档类中，最大的标题是 \part。它在 book 和 report 类中的层级是「-1」，在 article 类中的层级是「0」。这里，我们在调用 \appendix 的时候将计数器设置为 -2，因此所有的章节命令都不会编号了。不过，一般还是会保留 \part 的编号的。所以在实际使用中，将它设置为 0 就可以了。
+
+% 在修改过程中请注意不要破环命令的完整性
+
+\renewcommand\appendix{\setcounter{secnumdepth}{-2}}
+\appendix
+
+% 主文件有代码去掉页眉章节编号的“.”，但这会因为bug导致无编号章节显示一个错误编号，所以这里在无编号章节之前再次重定义sectionmark。
+\renewcommand{\sectionmark}[1]{\markright{#1}}
+
+\setreference
+
+\include{content/additional}
+ 
+
+
+\end{document}

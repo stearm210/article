@@ -1,0 +1,306 @@
+%!TEX root = ../sztuthesis_main.tex
+% 论文正文是主体，主体部分应从另页右页开始，每一章应另起页。一般由序号标题、文字叙述、图、表格和公式等五个部分构成。
+\section{引言}
+\subsection{研究背景与意义}
+%\begin{figure}[hbt]
+    %\centering
+   % \includegraphics[width=0.5\textwidth]{latex.jpg}
+   % \caption{LaTeX}
+   % \label{F.latex}
+%\end{figure}
+人群计数是智能化监控系统的重要内容,旨在利用计算机视觉技术准确估计图像中的人数[1],在安防预警、城市规划、智能商业、交通调度[2]等领域有着重要应用。随着深度学习技术的发展,基于卷积神经网络的人群计数算法取得了优异的性能,显著地降低了计数误差。因此，本研究拟研究基于卷积神经网络的人群计数问题，重点研究如何利用卷积神经网络提升人群计数的精度和鲁棒性。
+\par
+现行的主要人群计数方法有基于行人检测的方法、基于人数回归的方法和基于人群密度估计图[3]的方法等。对于基于行人检测的方法，比较早的研究可以追溯到2004年基于HOG算子的行人检测,方法提出之后，有学者就基于该算法构建了行人技术算法[5]，但仅对人数较少的场景有效，因为人数较多的场景存在大量拥挤造成该算法的漏检测严重。\par
+对于基于人数回归的方法，在2008到2014年间，基于人数回归的方法解决了行人检测方法的缺陷，能够对人数较多的场景[7]有效。其主要思路在于对输入图像或视频采用各种特征描述子提取特征，然后利用各种机器学习模型对人数进行回归。无论是行人检测还是人数回归，其能够输出的信息相对有限。行人检测虽然能输出行人边界框，但是存在大量漏检；人数回归虽然不会漏检，但根本不知道每个行人在哪里。因此，为了克服上面的缺点，寻找更加有效的方法，研究者们提出了人群密度图估计的方式[4]，给每个像素赋予密度值，总和记为场景中的人数[6]。这样不仅能提高模型的学习能力，也能给管理者带来更多的场景行人分布信息，一举两得。也正是这样的好处，目前人群计数领域中的方法都是以此作为基础进行研究的。\par
+鉴于以上背景，本研究拟使用了一个基于混合真值的CNN框架用于人群计数。考虑到高斯核生成的密度图可以提供粗略的人的位置，拟利用高斯人群密度图辅助网络生成最终的人群密度点图来进行最终的人群计数。
+
+
+
+
+
+
+
+\subsection{主要研究工作}
+
+(1) 复现实践一种混合真值CNN人群统计框架。此架构采用U形结构生成只有点监督的点图，将经过高斯平滑之后的真值监督下的密度图作为粗略的人群位置，辅助网络生成点图。\par
+(2) 复现实践一种ATRM算法，通过自适应滤波机制捕获像素的top-k相互依赖关系，解决人群分布不均匀和规模变化引起的问题。然后提出一种权重注意力机制，使ATRM聚焦于top-k关系中权重较大的部分。\par
+(3) 将上述算法实践在3个大规模公共数据集上。
+
+
+\subsection{论文组织结构}
+
+全文内容共六章，具体内容组织如下：
+
+第一章为绪论。
+
+第二章为相关工作。
+
+第三章为top-k网络用于人群计数。
+
+第四章为实验。
+
+第五章为参考文献。
+
+第六章总结与展望，总结了本文的主要工作，展望了下一阶段的研究方向。
+
+% \newpage    % 两个章节之间分页，不想分的话可注释掉
+\newpage
+\section{相关工作}
+\label{sec.figure}
+
+\emph{本节主要回顾了前期基于密度图、基于点和自注意力机制等进行人群计数的方法。}
+\subsection{基于密度图的方法}
+基于密度图的人群计数方法使用高斯核平滑后的生成的密度图来回归每个像素点的人数。
+生成密度图真实值最简单的方法是将每个与固定宽度的高斯核进行卷积处理[8]。后面的研究中，有人[9]根据透视值将每个像素标签的高斯核宽度进行了缩放。但是，实际运用中透视图经常无法运用，因此，有人再次提出了一种几何自适应高斯核的办法，这种办法的核宽度取决于到最近的带注释邻居的距离，通过高斯核对每个高斯核标签进行卷积。部分运用实例[10]尝试使用高斯核自适应宽度而不是使用手动设置的方式生成高斯核宽度。许多使用密度图的方法[20]注重于对人群头部的尺寸变化进行处理，比如多尺度机制、不同感受出度的多列结构[22]等。综上所述，大多数基于密度图的方法使用了注意力机制进行背景图中的降噪处理。
+\lipsum
+
+\emph{单图布局如图~\ref{F.sztu_single} 所示。}
+
+\begin{figure}[hbt]
+\centering
+\includegraphics[width=0.5\textwidth]{sztu.png}
+\caption{单图布局示例}
+\label{F.sztu_single}
+\end{figure}
+
+\subsection{基于点的方法}
+
+基于点的方法可直接利用标注点作为一种监督信息，以减轻以往基于密度图的方法中由于高斯平滑而产生的噪声。近年来有人提出[30]基于点标注的人群计数贝叶斯函数，但是这种方法依赖于高斯核。同样，有学者认为[12]可以将人群计数看作是一种分布匹配问题，其中，归一化后预测密度图与归一化真值密度图之间的相似性被OT来衡量，但是OT在进行计算时是十分耗时的。同样，有文章提出用排序分布处理不同场景下人头部分布不平衡问题。但是，以上基于点的方法都忽略了表达人群分布时高斯核平滑密度图的优势和表现多尺度结构在人群计数方面的优势。
+
+
+\emph{横排布局如图~\ref{F.sztu_row} 所示。}
+
+\begin{figure}[!htb]
+    \centering
+    \begin{subfigure}[t]{0.24\linewidth}
+        \begin{minipage}[b]{1\linewidth}
+        \includegraphics[width=1\linewidth]{sztu.png}
+        \caption{可以增加描述}
+        \end{minipage}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.24\linewidth}
+        \begin{minipage}[b]{1\linewidth}
+        \includegraphics[width=1\linewidth]{sztu.png}
+        \caption{}
+        \end{minipage}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.24\linewidth}
+        \begin{minipage}[b]{1\linewidth}
+        \includegraphics[width=1\linewidth]{sztu.png}
+        \caption{}
+        \end{minipage}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.24\linewidth}
+        \begin{minipage}[b]{1\linewidth}
+        \includegraphics[width=1\linewidth]{sztu.png}
+        \caption{}
+        \end{minipage}
+    \end{subfigure}
+    \caption{横排布局示例}
+    \label{F.sztu_row}
+\end{figure}
+
+\lipsum
+
+\subsection{自注意力模型}
+\emph{竖排布局如图\ref{F.sztu_col}所示。}
+
+神经网络所接收的不同向量之间有不同的关系，自注意力机制实际上是想让机器注意到整个输入中不同部分之间的相关性。对于人群计数，有人提出关系型网络，旨在发现全局和局部自关注像素之间的依赖关系。但是，局部自注意力只对空间上与中间位置高相关的邻居像素起作用。对于全局自注意力机制来说，只对图像经过池化处理得到依赖关系特征图有作用。可见，以上两种机制都会存在噪声问题。
+\begin{figure}[!htb]
+    \centering
+    \begin{subfigure}[t]{0.15\linewidth}
+        \begin{minipage}[b]{1\linewidth}
+        \includegraphics[width=1\linewidth]{sztu.png}
+        \caption{}
+        \end{minipage}
+    \end{subfigure}\\
+    \begin{subfigure}[t]{0.15\linewidth}
+        \begin{minipage}[b]{1\linewidth}
+        \includegraphics[width=1\linewidth]{sztu.png}
+        \caption{}
+        \end{minipage}
+    \end{subfigure}
+    \caption{竖排布局示例}
+    \label{F.sztu_col}
+\end{figure}
+
+\lipsum
+
+\subsection{竖排多图横排布局}
+
+\begin{figure}[!htb]
+    \centering
+    \begin{subfigure}[t]{0.13\linewidth}
+        \begin{minipage}[b]{1\linewidth}
+        \includegraphics[width=1\linewidth]{sztu.png} \vspace{-1ex} \vfill
+        \includegraphics[width=1\linewidth]{sztu.png}
+        \end{minipage}
+        \caption{}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.13\linewidth}
+        \begin{minipage}[b]{1\linewidth}
+        \includegraphics[width=1\linewidth]{sztu.png} \vspace{-1ex} \vfill
+        \includegraphics[width=1\linewidth]{sztu.png}
+        \end{minipage}
+        \caption{}
+    \end{subfigure}
+    \caption{竖排多图横排布局}
+    \label{F.sztu_col_row}
+\end{figure}
+
+\emph{竖排多图横排布局如图~\ref{F.sztu_col_row} 所示。注意看(a)、(b)编号与图关系。}
+
+
+\subsection{横排多图竖排布局}
+
+\lipsum
+
+\begin{figure}[!htb]
+    \centering
+    \begin{subfigure}[t]{0.3\linewidth}
+        \begin{minipage}[b]{1\linewidth}
+        \includegraphics[width=0.45\linewidth]{sztu.png}
+        \includegraphics[width=0.45\linewidth]{sztu.png}
+        \end{minipage}
+        \caption{}
+    \end{subfigure}\\
+    \begin{subfigure}[t]{0.3\linewidth}
+        \begin{minipage}[b]{1\linewidth}
+        \includegraphics[width=0.45\linewidth]{sztu.png}
+        \includegraphics[width=0.45\linewidth]{sztu.png}
+        \end{minipage}
+        \caption{}
+    \end{subfigure}
+    \caption{横排多图竖排布局}
+    \label{F.sztu_row_col}
+\end{figure}
+
+\emph{横排多图竖排布局如图~\ref{F.sztu_row_col} 所示。注意看(a)、(b)编号与图关系。}
+
+\subsection{本章小结}
+本章主要回顾了前期关于人群计数的不同方法。
+
+这里再测试一下不同章节的公式编号
+\begin{equation}
+p_{i} = \frac{e^{-\varepsilon_{i}/kT}}{\sum_{j=1}^{M}e^{-\varepsilon_{j}/kT}}
+\end{equation}
+
+\newpage    % 两个章节之间分页，不想分的话可注释掉
+
+
+\section{卷积神经网络用于人群计数}
+这篇文章复现了一种CNN框架，框架使用了以下三种模块：ATRM、MDME混合密度估计器以及FME（特征提取器）。框架先将输入的图像放在特证提取器FME中将图像特征图提取出来。这里的FME为归一化后的VGG16[33]中的前13层。特征图提取完成之后，在3个卷积层中提取出多尺度特征。文章运用了一种ATRM机制，使用与查询位置相关的前k个位置通过自适应过滤机制进行特证增强，即这里利用像素之间的top-k关系增强ATRM的特征表示。文章中还运用了MDME框架，此框架采用U形架构并负责将不同层次的多尺度特征进行融合，最终生成估计密度图与最终预测点图。经过以上过程，最终输出包括三个图像：人群注意力图、预测点图和人群估计密度图。
+\subsection{ATRM}
+本文运用了一种ATRM。这个ATRM通过使用自适应机制与查询位置相关的top-k位置进行特证增强。对于其余位置则不关心。同时，FME进行卷积运算之后的最后一层生成的特征作为ATRM的输入，以此来获得特征增强。以下为ATRM实现过程：\\
+(1)首先将输入图像进行重塑，
+
+
+
+
+\begin{table}[htb]
+  \centering
+  \caption{学校文件里对表格的要求不是很高，不过按照学术论文的一般规范，表格为三线表。}
+  \label{T.example}
+  \begin{tabular}{llllll}
+  \hline
+   & A  & B  & C  & D  & E \\
+  \hline
+1 	& 212 & 414 & 4 		& 23 & fgw	\\
+2 	& 212 & 414 & v 		& 23 & fgw	\\
+3 	& 212 & 414 & vfwe		& 23 & 长一些的内容	\\
+4 	& 212 & 414 & 4fwe		& 23 & 嗯	\\
+5 	& af2 & 4vx & 4 		& 23 & 长一些的内容	\\
+6 	& af2 & 4vx & 4 		& 23 & fgw	\\
+7 	& 212 & 414 & 4 		& 23 & fgw	\\
+
+\hline{}
+\end{tabular}
+\end{table}
+
+\emph{表格如表~\ref{T.example} 所示，\LaTeX 表格技巧很多，这里不再详细介绍。}
+
+\lipsum
+
+\newpage    % 两个章节之间分页，不想分的话可注释掉
+
+\section{公式插入示例}
+
+\lipsum
+
+\emph{公式插入示例如公式~\eqref{E.example} 所示。}
+\begin{equation}
+\gamma_x=
+\begin{cases}
+  0, & \text{if $|x| \leq \delta$} \\
+  x, & \text{otherwise}
+\end{cases}
+\label{E.example}
+\end{equation}
+
+
+\newpage    % 两个章节之间分页，不想分的话可注释掉
+
+\section{参考文献插入示例}
+
+\LaTeX \cite{lamport1994latex}插入参考文献最方便的方式是使用 \env{bibliography}\cite{pritchard1969statistical}。
+
+大多数出版商的论文页面都会有导出 \format{bib} 格式参考文献的链接，把每个文献的 \format{bib} 放入 \bib{thesis-references.bib}，然后用 \oper{bibkey} 即可插入参考文献。
+
+\lipsum
+
+\newpage    % 两个章节之间分页，不想分的话可注释掉
+
+
+\section{总结与展望}
+
+\noindent{纯数字编号}
+\begin{enumerate}
+ \item XXXXXXXXXX
+ \label{item1}
+ \item XXXXXXXXXX
+ \item XXXXXXXXXX
+\end{enumerate}
+罗马编号
+\begin{enumerate}[label=(\roman*)]
+ \item XXXXXXXXXX
+ \label{item2}
+ \item XXXXXXXXXX
+ \item XXXXXXXXXX
+\end{enumerate}
+括号编号
+\begin{enumerate}[label=(\arabic*)]
+ \item XXXXXXXXXX
+ \label{item3}
+ \item XXXXXXXXXX
+ \item XXXXXXXXXX
+\end{enumerate}
+半括号编号
+\begin{enumerate}[label=\arabic*)]
+ \item XXXXXXXXXX
+ \label{item4}
+ \item XXXXXXXXXX
+ \item XXXXXXXXXX
+\end{enumerate}
+小字母编号
+\begin{enumerate}[label=\alph*)]
+ \item XXXXXXXXXX
+ \label{item5}
+ \item XXXXXXXXXX
+ \item XXXXXXXXXX
+\end{enumerate}
+
+引用测试,正如~\ref{item1}、\ref{item2}、\ref{item3}、\ref{item4}、\ref{item5} 所示
+
+\subsection{工作展望}
+手动编号 %（不推荐,无法被交叉引用）
+
+本课题针对XX，鉴于XXX，对XX进行了提高，但是XXX，所以有如下XX：
+
+（1）目前XX虽然XX，但是XX仍然XX，所以XX仍然是一个值得XX的问题。
+
+（2）随着XX，XX具有XX的问题，仍值得进一步XX。
+
+（3）本课题在XX有了XX，但是XX的XX还存在XX，所以XX。
+
+
+\newpage
